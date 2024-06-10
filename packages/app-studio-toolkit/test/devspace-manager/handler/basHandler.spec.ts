@@ -142,11 +142,13 @@ describe("basHandler scope", () => {
         name: new URL(landscapeUrl1).hostname,
         url: new URL(landscapeUrl1).toString(),
         isLoggedIn: false,
+        alias: "",
       },
       {
         name: new URL(landscapeUrl2).hostname,
         url: new URL(landscapeUrl2).toString(),
         isLoggedIn: false,
+        alias: "",
       },
     ];
 
@@ -258,6 +260,7 @@ describe("basHandler scope", () => {
         name: new URL(landscapeUrl).hostname,
         url: new URL(landscapeUrl).toString(),
         isLoggedIn: false,
+        alias: "",
       });
       mockLandscapeSet
         .expects(`addLandscape`)

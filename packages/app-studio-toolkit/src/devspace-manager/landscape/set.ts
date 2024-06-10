@@ -17,19 +17,27 @@ export async function cmdLandscapeSet(): Promise<void> {
   });
 
   if (landscape) {
-    return addLandscape(landscape).finally(
+    const alias = await window.showInputBox({
+      prompt: "Landscape alias (optional)",
+      ignoreFocusOut: true,
+    });
+
+    return addLandscape(landscape, alias).finally(
       () => void commands.executeCommand("local-extension.tree.refresh")
     );
   }
 }
 
-export async function addLandscape(landscapeName: string): Promise<void> {
+export async function addLandscape(
+  landscapeName: string,
+  alias: string = ""
+): Promise<void> {
   const toAdd = new URL(landscapeName).toString();
   const landscapes = getLanscapesConfig();
   if (
-    !landscapes.find((landscape) => new URL(landscape).toString() === toAdd)
+    !landscapes.find((landscape) => new URL(landscape.url).toString() === toAdd)
   ) {
-    landscapes.push(landscapeName);
+    landscapes.push({ url: landscapeName, alias: alias });
     return updateLandscapesConfig(landscapes);
   }
 }

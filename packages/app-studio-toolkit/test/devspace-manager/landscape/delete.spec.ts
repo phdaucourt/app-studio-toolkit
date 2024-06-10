@@ -95,7 +95,7 @@ describe("landscapes delete unit test", () => {
       .resolves();
     mockRemoveLandscape
       .expects("removeLandscape")
-      .withExactArgs(node.url)
+      .withExactArgs({ url: node.url, alias: "" })
       .resolves();
     await cmdLandscapeDeleteProxy(node);
     await new Promise((resolve) => setTimeout(() => resolve(true), 100));
@@ -115,7 +115,7 @@ describe("landscapes delete unit test", () => {
       .resolves();
     mockRemoveLandscape
       .expects("removeLandscape")
-      .withExactArgs(node.url)
+      .withExactArgs({ url: node.url, alias: "" })
       .rejects(new Error("e"));
     await cmdLandscapeDeleteProxy(node).catch((e) => "");
     await new Promise((resolve) => setTimeout(() => resolve(true), 100));

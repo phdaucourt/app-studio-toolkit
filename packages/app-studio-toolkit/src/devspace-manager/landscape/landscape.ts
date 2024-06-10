@@ -38,33 +38,33 @@ export interface LandscapeInfo {
   name: string;
   url: string;
   isLoggedIn: boolean;
+  alias: string;
+}
+
+export interface LandscapeConfig {
+  url: string;
+  alias: string;
 }
 
 function isLandscapeLoggedIn(url: string): Promise<boolean> {
   return hasJwt(url);
 }
 
-export function getLanscapesConfig(): string[] {
-  return uniq(
-    compact(
-      (
-        workspace.getConfiguration().get<string>("sap-remote.landscape-name") ??
-        ""
-      )
-        .split(",")
-        .map((value) => (value ? new URL(trim(value)).toString() : value))
-    )
-  );
+export function getLanscapesConfig(): LandscapeConfig[] {
+  const landscapeConfig =
+    workspace
+      .getConfiguration()
+      .get<LandscapeConfig[]>("sap-remote.landscape-name") ?? [];
+
+  return landscapeConfig;
 }
 
-export async function updateLandscapesConfig(value: string[]): Promise<void> {
+export async function updateLandscapesConfig(
+  value: LandscapeConfig[]
+): Promise<void> {
   return workspace
     .getConfiguration()
-    .update(
-      "sap-remote.landscape-name",
-      value.join(","),
-      ConfigurationTarget.Global
-    )
+    .update("sap-remote.landscape-name", value, ConfigurationTarget.Global)
     .then(() => {
       getLogger().debug(`Landscapes config updated: ${value.toString()}`);
     });
@@ -73,22 +73,25 @@ export async function updateLandscapesConfig(value: string[]): Promise<void> {
 export async function getLandscapes(): Promise<LandscapeInfo[]> {
   const lands: LandscapeInfo[] = [];
   for (const landscape of getLanscapesConfig()) {
-    const url = new URL(landscape);
+    const url = new URL(landscape.url);
     lands.push({
       name: url.hostname,
       url: url.toString(),
-      isLoggedIn: await isLandscapeLoggedIn(landscape),
+      isLoggedIn: await isLandscapeLoggedIn(url.toString()),
+      alias: landscape.alias,
     });
   }
   return lands;
 }
 
-export async function removeLandscape(landscapeName: string): Promise<void> {
+export async function removeLandscape(
+  landscape: LandscapeConfig
+): Promise<void> {
   const config = getLanscapesConfig();
   if (size(config) > 0) {
-    const toRemove = new URL(landscapeName).toString();
+    const toRemove = landscape;
     const updated = config.filter(
-      (landscape) => new URL(landscape).toString() !== toRemove
+      (landscape) => landscape.url !== toRemove.url
     );
     if (size(updated) !== size(config)) {
       return updateLandscapesConfig(updated);

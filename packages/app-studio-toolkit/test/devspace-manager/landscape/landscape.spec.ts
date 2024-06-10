@@ -7,16 +7,20 @@ enum localConfigurationTarget {
   Workspace = 2,
   WorkspaceFolder = 3,
 }
-let lands: string[] | undefined = [];
+let lands: land.LandscapeConfig[] | undefined = [];
 const wsConfig = {
   get: (key: string) =>
-    key === "sap-remote.landscape-name" ? lands?.join(",") : undefined,
-  update: (key: string, value: string, target: localConfigurationTarget) => {
+    key === "sap-remote.landscape-name" ? lands : undefined,
+  update: (
+    key: string,
+    value: land.LandscapeInfo[],
+    target: localConfigurationTarget
+  ) => {
     if (
       key === "sap-remote.landscape-name" &&
       target === localConfigurationTarget.Global
     ) {
-      lands = value.split(",");
+      lands = value;
     }
     return Promise.resolve();
   },
@@ -74,45 +78,47 @@ describe("landscapes unit test", () => {
   });
 
   it("getLandscapes, few items defined", async () => {
-    lands?.push(landscapeUrl1);
-    lands?.push(landscapeUrl2);
+    lands?.push({ url: landscapeUrl1, alias: "" });
+    lands?.push({ url: landscapeUrl2, alias: "" });
     const landscapes: land.LandscapeInfo[] = [
       {
         name: new URL(landscapeUrl1).hostname,
         url: new URL(landscapeUrl1).toString(),
         isLoggedIn: false,
+        alias: "",
       },
       {
         name: new URL(landscapeUrl2).hostname,
         url: new URL(landscapeUrl2).toString(),
         isLoggedIn: false,
+        alias: "",
       },
     ];
     expect(await land.getLandscapes()).be.deep.equal(landscapes);
   });
 
   it("removeLandscape, successful", async () => {
-    lands?.push(landscapeUrl1);
-    lands?.push(landscapeUrl2);
-    await land.removeLandscape(landscapeUrl1);
-    expect(lands).be.deep.equal([new URL(landscapeUrl2).toString()]);
+    lands?.push({ url: landscapeUrl1, alias: "" });
+    lands?.push({ url: landscapeUrl2, alias: "" });
+    await land.removeLandscape(lands![0]);
+    expect(lands).be.deep.equal([{ url: landscapeUrl2, alias: "" }]);
   });
 
   it("removeLandscape, only one item exists", async () => {
-    lands?.push(landscapeUrl1);
-    await land.removeLandscape(landscapeUrl1);
-    expect(lands).be.deep.equal([""]);
+    lands?.push({ url: landscapeUrl1, alias: "" });
+    await land.removeLandscape(lands![0]);
+    expect(lands).be.deep.equal([]);
   });
 
   it("removeLandscape, the require item not exists, result not changed", async () => {
-    lands?.push(landscapeUrl1);
-    await land.removeLandscape(landscapeUrl2);
-    expect(lands).be.deep.equal([landscapeUrl1]);
+    lands?.push({ url: landscapeUrl1, alias: "" });
+    await land.removeLandscape({ url: landscapeUrl2, alias: "" });
+    expect(lands).be.deep.equal([{ url: landscapeUrl1, alias: "" }]);
   });
 
   it("removeLandscape, no config detected", async () => {
     lands = undefined;
-    await land.removeLandscape(landscapeUrl1);
+    await land.removeLandscape({ url: landscapeUrl1, alias: "" });
     expect(lands).be.undefined;
   });
 
@@ -123,7 +129,7 @@ describe("landscapes unit test", () => {
   });
 
   it("autoRefresh, landscapes exist", (done) => {
-    lands?.push(landscapeUrl2);
+    lands?.push({ url: landscapeUrl2, alias: "" });
     mockCommands
       .expects(`executeCommand`)
       .atLeast(3)
@@ -133,7 +139,7 @@ describe("landscapes unit test", () => {
   });
 
   it("autoRefresh, exception thrown", (done) => {
-    lands?.push(`ttt:\\wrong..pattern`);
+    lands?.push({ url: `ttt:\\wrong..pattern`, alias: "" });
     land.autoRefresh(100, 200);
     setTimeout(() => done(), 500);
   });
@@ -142,6 +148,7 @@ describe("landscapes unit test", () => {
     const landscape = `http://my.landscape.test`;
     const node = {
       url: landscape,
+      label: "",
     };
 
     it("cmdLoginToLandscape - session not exists", async () => {

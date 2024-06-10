@@ -55,7 +55,7 @@ export class DevSpaceDataProvider implements TreeDataProvider<TreeItem> {
     const rootNodes = map(landscapes, (landscape) => {
       return new LandscapeNode(
         this.extensionPath,
-        landscape.name,
+        landscape.alias ? landscape.alias : landscape.name,
         TreeItemCollapsibleState.Expanded,
         iconPath,
         "",

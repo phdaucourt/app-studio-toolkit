@@ -11,7 +11,10 @@ export async function cmdLandscapeDelete(
     ...[messages.lbl_yes, messages.lbl_no]
   );
   if (answer == messages.lbl_yes) {
-    return removeLandscape(landscape.url).finally(
+    return removeLandscape({
+      url: landscape.url,
+      alias: "",
+    }).finally(
       () => void commands.executeCommand("local-extension.tree.refresh")
     );
   }

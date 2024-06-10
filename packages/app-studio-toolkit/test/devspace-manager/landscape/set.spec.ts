@@ -2,9 +2,10 @@ import { expect } from "chai";
 import { SinonMock, mock } from "sinon";
 import proxyquire from "proxyquire";
 import * as land from "../../../src/devspace-manager/landscape/set";
+import { LandscapeConfig } from "src/devspace-manager/landscape/landscape";
 
 describe("landscapes set unit test", () => {
-  let lands: string[] = [];
+  let lands: LandscapeConfig[] = [];
   let cmdLandscapeSetProxy: typeof land.cmdLandscapeSet;
   const proxyWindow = {
     showInputBox: () => {
@@ -17,10 +18,10 @@ describe("landscapes set unit test", () => {
     },
   };
   const landscapeProxy = {
-    getLanscapesConfig: () => {
+    getLanscapesConfig: (): LandscapeConfig[] => {
       return lands;
     },
-    updateLandscapesConfig: (other: string[]) => {
+    updateLandscapesConfig: (other: LandscapeConfig[]) => {
       lands = other;
     },
   };
@@ -53,27 +54,91 @@ describe("landscapes set unit test", () => {
   });
 
   const landscape = `https://my.landscape-1.com`;
+  const alias = "landscape1";
+  const emptyAlias = "";
 
-  it("cmdLandscapeSet, confirmed added", async () => {
-    mockWindow.expects("showInputBox").returns(landscape);
+  it("cmdLandscapeSet, confirmed, added, with alias", async () => {
+    mockWindow.expects("showInputBox").atLeast(1).returns(landscape);
+    mockWindow.expects("showInputBox").atLeast(1).returns(alias);
     mockCommands
       .expects("executeCommand")
       .withExactArgs("local-extension.tree.refresh")
       .resolves();
     await cmdLandscapeSetProxy();
-    expect(lands.includes(landscape)).to.be.true;
+    expect(lands.find((land) => land.url === landscape && land.alias === alias))
+      .to.be.not.undefined;
     expect(lands.length).to.be.equal(1);
   });
 
-  it("cmdLandscapeSet, confirmed, existed", async () => {
-    lands.push(landscape);
-    mockWindow.expects("showInputBox").returns(landscape);
+  it("cmdLandscapeSet, confirmed added, without alias", async () => {
+    mockWindow.expects("showInputBox").atLeast(1).returns(landscape);
+    mockWindow.expects("showInputBox").atLeast(1).returns(emptyAlias);
     mockCommands
       .expects("executeCommand")
       .withExactArgs("local-extension.tree.refresh")
       .resolves();
     await cmdLandscapeSetProxy();
-    expect(lands.includes(landscape)).to.be.true;
+    expect(
+      lands.find((land) => land.url === landscape && land.alias === emptyAlias)
+    ).to.be.not.undefined;
+    expect(lands.length).to.be.equal(1);
+  });
+
+  it("cmdLandscapeSet, confirmed added, alias canceled", async () => {
+    mockWindow.expects("showInputBox").atLeast(1).returns(landscape);
+    mockWindow.expects("showInputBox").atLeast(1).returns(undefined);
+    mockCommands
+      .expects("executeCommand")
+      .withExactArgs("local-extension.tree.refresh")
+      .resolves();
+    await cmdLandscapeSetProxy();
+    expect(
+      lands.find((land) => land.url === landscape && land.alias === emptyAlias)
+    ).to.be.not.undefined;
+    expect(lands.length).to.be.equal(1);
+  });
+
+  it("cmdLandscapeSet, confirmed, existed, with alias", async () => {
+    lands.push({ url: landscape, alias: alias });
+    mockWindow.expects("showInputBox").atLeast(1).returns(landscape);
+    mockWindow.expects("showInputBox").atLeast(1).returns(alias);
+    mockCommands
+      .expects("executeCommand")
+      .withExactArgs("local-extension.tree.refresh")
+      .resolves();
+    await cmdLandscapeSetProxy();
+    expect(lands.find((land) => land.url === landscape && land.alias === alias))
+      .to.be.not.undefined;
+    expect(lands.length).to.be.equal(1);
+  });
+
+  it("cmdLandscapeSet, confirmed, existed, without alias", async () => {
+    lands.push({ url: landscape, alias: emptyAlias });
+    mockWindow.expects("showInputBox").atLeast(1).returns(landscape);
+    mockWindow.expects("showInputBox").atLeast(1).returns(emptyAlias);
+    mockCommands
+      .expects("executeCommand")
+      .withExactArgs("local-extension.tree.refresh")
+      .resolves();
+    await cmdLandscapeSetProxy();
+    expect(
+      lands.find((land) => land.url === landscape && land.alias === emptyAlias)
+    ).to.be.not.undefined;
+    expect(lands.length).to.be.equal(1);
+  });
+
+  it("cmdLandscapeSet, confirmed, existed, alias canceled", async () => {
+    lands.push({ url: landscape, alias: emptyAlias });
+    mockWindow.expects("showInputBox").atLeast(1).returns(landscape);
+    mockWindow.expects("showInputBox").atLeast(1).returns(undefined);
+    mockCommands
+      .expects("executeCommand")
+      .withExactArgs("local-extension.tree.refresh")
+      .resolves();
+    await cmdLandscapeSetProxy();
+    expect(
+      lands.find((land) => land.url === landscape && land.alias === emptyAlias)
+    ).to.be.not.undefined;
     expect(lands.length).to.be.equal(1);
   });
 
@@ -81,6 +146,6 @@ describe("landscapes set unit test", () => {
     mockWindow.expects("showInputBox").returns(undefined);
     mockCommands.expects("executeCommand").never();
     await cmdLandscapeSetProxy();
-    expect(lands.includes(landscape)).to.be.false;
+    expect(lands.find((land) => land.url === landscape)).to.be.undefined;
   });
 });

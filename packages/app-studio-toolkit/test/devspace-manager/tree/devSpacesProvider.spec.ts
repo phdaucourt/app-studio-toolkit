@@ -70,11 +70,13 @@ describe("devSpacesProvider unit test", () => {
       name: `http://test-domain.landscape-1.com`,
       url: `http://test-domain.landscape-1.com/`,
       isLoggedIn: false,
+      alias: "",
     },
     {
       name: `http://test-domain.landscape-2.com`,
       url: `http://test-domain.landscape-2.com/`,
       isLoggedIn: true,
+      alias: "abc",
     },
   ];
 
@@ -123,21 +125,21 @@ describe("devSpacesProvider unit test", () => {
     const childrens = await instance.getChildren();
     expect(childrens.length).to.be.equal(2);
     let item = <LandscapeNode>childrens[0];
+    expect(item.name).to.be.equal(landscapes[0].name);
     expect(item.label).to.be.equal(landscapes[0].name);
     expect(item.collapsibleState).to.be.equal(
       proxyTreeItemCollapsibleState.Expanded
     );
     expect(item.tooltip).to.be.equal(`Not logged in`);
-    expect(item.name).to.be.equal(landscapes[0].name);
     expect(item.url).to.be.equal(landscapes[0].url);
     expect(item.contextValue).to.be.equal(`landscape-log-out`);
     item = <LandscapeNode>childrens[1];
-    expect(item.label).to.be.equal(landscapes[1].name);
+    expect(item.name).to.be.equal(landscapes[1].name);
+    expect(item.label).to.be.equal(landscapes[1].alias);
     expect(item.collapsibleState).to.be.equal(
       proxyTreeItemCollapsibleState.Expanded
     );
     expect(item.tooltip).to.be.equal(`Logged in`);
-    expect(item.name).to.be.equal(landscapes[1].name);
     expect(item.url).to.be.equal(landscapes[1].url);
     expect(item.contextValue).to.be.equal(`landscape-log-in`);
   });

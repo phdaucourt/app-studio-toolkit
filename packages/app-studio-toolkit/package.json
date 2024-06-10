@@ -155,9 +155,25 @@
         "title": "Business Application Studio Desktop Client",
         "properties": {
           "sap-remote.landscape-name": {
-            "type": "string",
+            "type": "array",
             "title": "Business Application Studio Desktop Client",
-            "default": "",
+            "items": {
+              "type": "object",
+              "title": "Landscape",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "description": "Landscape URL",
+                  "default": ""
+                },
+                "alias": {
+                  "type": "string",
+                  "description": "Landscape alias",
+                  "default": ""
+                }
+              }
+            },
+            "default": [],
             "description": "Landscape: the landscape to connect",
             "scope": "window"
           }
